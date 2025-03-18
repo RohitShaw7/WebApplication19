@@ -5,12 +5,13 @@ on:
     branches: [ "master" ]
 
 permissions:
-  contents: read  # Allows reading repository contents
+  contents: read # Allows reading repository contents
 
 jobs:
   build-and-push:
     name: Build & Push to ACR
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -18,7 +19,7 @@ jobs:
     - name: Set up .NET 8.0
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '8.0.x'  # Install .NET 8.0 SDK
+        dotnet-version: '8.0.x' # Install .NET 8.0 SDK
 
     - name: Restore dependencies
       run: dotnet restore
@@ -32,8 +33,8 @@ jobs:
     - name: Login to Azure Container Registry
       run: |
         docker login ${{ secrets.ACR_NAME }}.azurecr.io \
-          -u ${{ secrets.ACR_USERNAME }} \
-          -p ${{ secrets.ACR_PASSWORD }}
+        -u ${{ secrets.ACR_USERNAME }} \
+        -p ${{ secrets.ACR_PASSWORD }}
 
     - name: Build and push Docker image to ACR
       env:
@@ -41,17 +42,4 @@ jobs:
       run: |
         ACR_REPO=${{ secrets.ACR_NAME }}.azurecr.io/aspnetcoreapp
         docker build -t $ACR_REPO:${IMAGE_TAG} .
-        docker push $ACR_REPO:${IMAGE_TAG}
-
-  deploy:
-    name: Deploy to Azure App Service
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-    - name: Deploy to Azure App Service
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-        slot-name: "production"
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        images: ${{ secrets.ACR_NAME }}.azurecr.io/aspnetcoreapp:${{ github.sha }}
+        docker push $ACR_REPO:${IMAGE_TAG}}
